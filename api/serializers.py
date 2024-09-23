@@ -39,7 +39,7 @@ class CourseSerializer(serializers.ModelSerializer):
 
 
 class StudentSerializer(serializers.ModelSerializer):
-    course = CourseSerializer()
+    course = CourseSerializer(read_only=True)
 
     class Meta:
         model = Student
@@ -51,6 +51,29 @@ class StudentSerializer(serializers.ModelSerializer):
             "enrollment_number",
             "phone_number",
         ]
+
+
+class StudentRegistrationSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Student
+        fields = [
+            "username",
+            "email",
+            "password",
+            "enrollment_number",
+            "phone_number",
+        ]
+
+    def create(self, validated_data):
+        student = Student.objects.create(
+            username=validated_data["username"],
+            email=validated_data["email"],
+            enrollment_number=validated_data["enrollment_number"],
+            phone_number=validated_data["phone_number"],
+        )
+        student.set_password(validated_data["password"])
+        student.save()
+        return student
 
 
 class IssuedBookSerializer(serializers.ModelSerializer):
