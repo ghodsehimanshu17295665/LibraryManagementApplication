@@ -75,6 +75,10 @@ class Student(AbstractUser, TimeStampedModel):
     def __str__(self):
         return f"{self.email} ({self.enrollment_number})"
 
+    class Meta:
+        verbose_name = "Students name"
+        verbose_name_plural = "Students name"
+
 
 class IssuedBook(TimeStampedModel):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
