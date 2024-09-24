@@ -9,8 +9,17 @@ from .views import (
     CourseListCreateAPIView,
     CourseRetrieveUpdateDestroyAPIView,
     StudentRegistrationAPIView,
+    StudentLoginAPIView,
+    StudentLogoutAPIView,
     StudentRetrieveUpdateAPIView,
     StudentListAPIView,
+    IssueBookView,
+    ReturnBookView,
+    IssuedBookListView,
+)
+from rest_framework_simplejwt.views import (
+    TokenObtainPairView,
+    TokenRefreshView,
 )
 
 
@@ -51,15 +60,14 @@ urlpatterns = [
         CourseRetrieveUpdateDestroyAPIView.as_view(),
         name="course-detail",
     ),
-    path(
-        "students/register/",
-        StudentRegistrationAPIView.as_view(),
-        name="student-register",
-    ),
-    path(
-        "students/<uuid:pk>/",
-        StudentRetrieveUpdateAPIView.as_view(),
-        name="student-detail-update",
-    ),
-    path("students/", StudentListAPIView.as_view(), name="student-list"),
+    path('students/register/', StudentRegistrationAPIView.as_view(), name='student-register'),
+    path('students/login/', StudentLoginAPIView.as_view(), name='student-login'),
+    path('students/logout/', StudentLogoutAPIView.as_view(), name='student-logout'),
+    path('students/<uuid:pk>/', StudentRetrieveUpdateAPIView.as_view(), name='student-detail-update'),
+    path('students/', StudentListAPIView.as_view(), name='student-list'),
+    path('api/token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
+    path('api/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
+    path('issue-book/', IssueBookView.as_view(), name='issue-book'),
+    path('return-book/', ReturnBookView.as_view(), name='return-book'),
+    path('issued-books/', IssuedBookListView.as_view(), name='issued-books'),
 ]
