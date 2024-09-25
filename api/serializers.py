@@ -91,8 +91,8 @@ class StudentLoginSerializer(serializers.Serializer):
 
 
 class IssuedBookSerializer(serializers.ModelSerializer):
-    student = StudentSerializer()
-    book = BookSerializer()
+    student = serializers.PrimaryKeyRelatedField(queryset=Student.objects.all())
+    book = serializers.PrimaryKeyRelatedField(queryset=Book.objects.all())
 
     class Meta:
         model = IssuedBook
