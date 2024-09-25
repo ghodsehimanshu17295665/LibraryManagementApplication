@@ -90,7 +90,7 @@ class IssuedBook(TimeStampedModel):
     is_returned = models.BooleanField(default=False)
 
     def __str__(self):
-        return f"{self.book.title} issued to {self.student.name}"
+        return f"{self.book.title} issued to {self.student.username}"
 
 
 class Fine(models.Model):
