@@ -25,6 +25,7 @@ from .pagination import (
 )
 from .filters import BookFilter, IssuedBookFilter
 from rest_framework.permissions import IsAdminUser, AllowAny
+from datetime import datetime, timedelta
 
 
 # List and Create Author :-
@@ -101,6 +102,7 @@ class StudentRegistrationAPIView(generics.CreateAPIView):
 
 # Login view
 class StudentLoginAPIView(generics.GenericAPIView):
+    queryset = Student.objects.all()
     serializer_class = StudentLoginSerializer
 
     def post(self, request, *args, **kwargs):
@@ -168,33 +170,77 @@ class StudentListAPIView(generics.ListAPIView):
 class IssueBookView(APIView):
     def post(self, request, *args, **kwargs):
         book_id = request.data.get('book')
-        student_id = request.data.get('student')
+
+        # Get the book Object
+        book = Book.objects.filter(id=book_id).first()
+        if not book:
+            return Response({"msg": "Book Not Found"}, status=status.HTTP_404_NOT_FOUND)
+
+        student = request.user
+        if not student:
+            return Response({"msg": "Student Not Found"}, status=status.HTTP_404_NOT_FOUND)
 
         # Check if the book is already issued and not returned
-        if IssuedBook.objects.filter(book_id=book_id, is_returned=False).exists():
-            return Response({"error": "Book is already issued to another student."}, status=status.HTTP_400_BAD_REQUEST)
+        is_book_issued = IssuedBook.objects.filter(book=book, student=student, is_returned=False)
 
-        # If available, issue the book
-        serializer = IssuedBookSerializer(data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        if book.quantity <= 0:
+            return Response({"msg": "No Book available to issue"}, status=status.HTTP_400_BAD_REQUEST)
 
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        book.quantity -= 1
+        book.save()
+
+        if is_book_issued:
+            return Response({"msg": "Book is already issued"}, status=status.HTTP_400_BAD_REQUEST)
+
+        issued_book = IssuedBook(
+            book=book,
+            student=student,
+            issue_date=datetime.now(),
+            due_date=datetime.now() + timedelta(days=14),
+            is_returned=False
+        )
+
+        issued_book.save()
+
+        return Response({
+            "id": issued_book.id,
+            "book": issued_book.book.id,
+            "student": issued_book.student.id,
+            "issue_date": issued_book.issue_date,
+            "due_date": issued_book.due_date,
+            "is_returned": issued_book.is_returned
+        }, status=status.HTTP_201_CREATED)
 
 
 class ReturnBookView(APIView):
     def post(self, request, *args, **kwargs):
         issued_book_id = request.data.get('issued_book')
 
-        try:
-            issued_book = IssuedBook.objects.get(id=issued_book_id, is_returned=False)
-            issued_book.is_returned = True
-            issued_book.return_date = now().date()
-            issued_book.save()
-            return Response({"message": "Book returned successfully."}, status=status.HTTP_200_OK)
-        except IssuedBook.DoesNotExist:
-            return Response({"error": "Issued book not found or already returned."}, status=status.HTTP_404_NOT_FOUND)
+        # Get the issued book
+        issued_book = IssuedBook.objects.filter(id=issued_book_id).first()
+        
+        if not issued_book:
+            return Response({"msg": "Issued book record not found."}, status=status.HTTP_404_NOT_FOUND)
+        
+        student = request.user
+        if not student:
+            return Response({"msg": "User not authenticated"}, status=status.HTTP_401_UNAUTHORIZED)
+
+        # Check if the book has already been returned
+        if issued_book.is_returned:
+            return Response({"msg": "This book has already been returned."}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Mark the book as returned
+        issued_book.is_returned = True
+        issued_book.return_date = now().date()
+        issued_book.save()
+
+        # Get the associated book and increase the quantity
+        book = issued_book.book
+        book.quantity += 1
+        book.save()
+
+        return Response({"message": "Book returned successfully."}, status=status.HTTP_200_OK)
 
 
 class IssuedBookListView(generics.ListAPIView):
