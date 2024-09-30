@@ -37,6 +37,22 @@ class AuthorListCreateAPIView(generics.ListCreateAPIView):
     filter_backends = [DjangoFilterBackend]
     filterset_class = AuthorFilter
 
+    def get_permissions(self):
+        if self.request.method == "POST":
+            return [permissions.IsAdminUser()]
+        return [permissions.AllowAny()]
+
+    def create(self, request):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        self.perform_create(serializer)
+
+        # Create a success message
+        return Response({
+            'message': 'Author created successfully!',
+            'author': serializer.data
+        }, status=status.HTTP_201_CREATED)
+
 
 # Retrieve, Update, and Delete
 class AuthorRetrieveUpdateDestroyAPIView(
@@ -44,6 +60,11 @@ class AuthorRetrieveUpdateDestroyAPIView(
 ):
     queryset = Author.objects.all()
     serializer_class = AuthorSerializer
+
+    def get_permissions(self):
+        if self.request.method in ["PUT", "PATCH", "DELETE"]:
+            return [permissions.IsAdminUser()]
+        return [permissions.AllowAny()]
 
 
 # List and Create Category
@@ -76,6 +97,19 @@ class BookListCreateAPIView(generics.ListCreateAPIView):
         if self.request.method == "POST":
             return [permissions.IsAdminUser()]
         return [permissions.AllowAny()]
+
+    def create(self, request):
+        serializer = self.get_serializer(data=request.data)
+        if Book.objects.filter(title=serializer.initial_data.get('title')).exists():
+            return Response(
+                {'error': 'A book with this title already exists.'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        serializer.is_valid(raise_exception=True)
+        self.perform_create(serializer)
+
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
 
 
 # Retrive, Update, and Delete Book
@@ -223,6 +257,9 @@ class IssuedBookListView(generics.ListAPIView):
     serializer_class = IssuedBookSerializer
     pagination_class = IssuedBookPagination
     filterset_class = IssuedBookFilter
+
+    def get_queryset(self):
+        return IssuedBook.objects.filter(is_returned=False)
 
 
 # class IssueBookView(APIView):
