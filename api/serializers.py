@@ -40,7 +40,11 @@ class CourseSerializer(serializers.ModelSerializer):
 
 
 class StudentSerializer(serializers.ModelSerializer):
-    course = CourseSerializer(read_only=True)
+    # Allow course to be updated by its name
+    course = serializers.SlugRelatedField(
+        slug_field="name",  # Use course name for updates
+        queryset=Course.objects.all()  # Ensure the queryset contains all courses
+    )
 
     class Meta:
         model = Student
@@ -55,12 +59,18 @@ class StudentSerializer(serializers.ModelSerializer):
 
 
 class StudentRegistrationSerializer(serializers.ModelSerializer):
+    course = serializers.SlugRelatedField(
+        slug_field="name",  # Allows using course name instead of course ID
+        queryset=Course.objects.all()  # You need to provide a queryset to look up the Course by name
+    )
+
     class Meta:
         model = Student
         fields = [
             "username",
             "email",
             "password",
+            "course",  # The course name will be provided here
             "enrollment_number",
             "phone_number",
         ]
@@ -69,6 +79,7 @@ class StudentRegistrationSerializer(serializers.ModelSerializer):
         student = Student.objects.create(
             username=validated_data["username"],
             email=validated_data["email"],
+            course=validated_data["course"],  # Course object is automatically looked up by name
             enrollment_number=validated_data["enrollment_number"],
             phone_number=validated_data["phone_number"],
         )
