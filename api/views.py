@@ -120,7 +120,7 @@ class BookRetrieveUpdateDestroyAPIView(generics.RetrieveUpdateDestroyAPIView):
     def get_permissions(self):
         if self.request.method in ["PUT", "PATCH", "DELETE"]:
             return [permissions.IsAdminUser()]
-        return [permissions.AllowAny()]
+        return [permissions.IsAuthenticated()]
 
 
 # List and Create API for Course (With Pagination)
@@ -159,7 +159,7 @@ class StudentLoginAPIView(generics.GenericAPIView):
     queryset = Student.objects.all()
     serializer_class = StudentLoginSerializer
 
-    def post(self, request, *args, **kwargs):
+    def post(self, request):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         user = serializer.validated_data
@@ -182,7 +182,7 @@ class StudentLoginAPIView(generics.GenericAPIView):
 class StudentLogoutAPIView(generics.GenericAPIView):
     permission_classes = [permissions.IsAuthenticated]
 
-    def post(self, request, *args, **kwargs):
+    def post(self, request):
         return Response({"message": "Successfully logged out!"}, status=200)
 
 
@@ -211,6 +211,19 @@ class StudentRetrieveUpdateAPIView(generics.RetrieveUpdateAPIView):
     serializer_class = StudentSerializer
     permission_classes = [permissions.IsAuthenticated]
 
+    def delete(self, request, **kwargs):
+        # Get the student instance that is being accessed
+        student = self.get_object()
+
+        # Check if the authenticated user matches the student
+        if student.id == request.user.id:
+            # Perform the deletion
+            student.delete()
+            return Response({"message": "Student deleted successfully."}, status=status.HTTP_200_OK)
+        else:
+            return Response({"detail": "You do not have permission to delete this student."},
+                            status=status.HTTP_403_FORBIDDEN)
+
 
 # Get All Students with Pagination
 class StudentListAPIView(generics.ListAPIView):
@@ -219,8 +232,8 @@ class StudentListAPIView(generics.ListAPIView):
     pagination_class = StudentPagination
     permission_classes = [permissions.IsAuthenticated]
 
-    def list(self, request, *args, **kwargs):
-        response = super().list(request, *args, **kwargs)
+    def list(self, request):
+        response = super().list(request)
         return Response(
             {
                 "message": "Students retrieved successfully!",
@@ -238,7 +251,7 @@ class ReturnBookView(generics.GenericAPIView):
     queryset = IssuedBook.objects.all()
     serializer_class = ReturnBookSerializer
 
-    def post(self, request, *args, **kwargs):
+    def post(self, request):
         # Validate and serialize the input data
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
