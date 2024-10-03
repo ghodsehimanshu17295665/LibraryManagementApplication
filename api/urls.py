@@ -89,3 +89,9 @@ urlpatterns = [
     path("return-book/", ReturnBookView.as_view(), name="return-book"),
     path("issued-books/", IssuedBookListView.as_view(), name="issued-books"),
 ]
+
+
+# author/create/
+# author/update/
+# author/list/
+# author/retireve
