@@ -232,14 +232,14 @@ class StudentListAPIView(generics.ListAPIView):
     pagination_class = StudentPagination
     permission_classes = [permissions.IsAuthenticated]
 
-    def list(self, request):
-        response = super().list(request)
-        return Response(
-            {
-                "message": "Students retrieved successfully!",
-                "data": response.data,
-            }
-        )
+    # def list(self, request):
+    #     response = super().list(request)
+    #     return Response(
+    #         {
+    #             "message": "Students retrieved successfully!",
+    #             "data": response.data,
+    #         }
+    #     )
 
 
 class IssueBookView(generics.CreateAPIView):
@@ -257,11 +257,11 @@ class ReturnBookView(generics.GenericAPIView):
         serializer.is_valid(raise_exception=True)
 
         # Call the save method, which will handle the logic in the serializer
-        serializer.save(student=request.user)
+        issued_book = serializer.save(student=request.user)
 
         return Response(
-            {"message": "Book returned successfully."},
-            status=status.HTTP_200_OK,
+            {"message": "Book returned successfully!", "issued_book_id": issued_book.id},
+            status=status.HTTP_200_OK
         )
 
 
@@ -280,7 +280,7 @@ class IssuedBookListView(generics.ListAPIView):
 #         book_id = request.data.get("book")  # This is String
 
 #         # Get the book Object
-#         book = Book.objects.filter(id=book_id).first()
+#         book = Book.objects.filter(id=book_id).fiCreateAPIViewrst()
 #         if not book:
 #             return Response(
 #                 {"msg": "Book Not Found"}, status=status.HTTP_404_NOT_FOUND
