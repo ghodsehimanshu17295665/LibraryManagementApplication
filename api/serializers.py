@@ -57,17 +57,6 @@ class StudentSerializer(serializers.ModelSerializer):
             "phone_number",
         ]
 
-    def to_representation(self, instance):
-        """
-        Override to include a custom message in the serialized data.
-        """
-        data = super().to_representation(instance)
-
-        return {
-            "message": "Students retrieved successfully!",
-            "data": data
-        }
-
 
 class StudentRegistrationSerializer(serializers.ModelSerializer):
     course = serializers.SlugRelatedField(
@@ -96,6 +85,7 @@ class StudentRegistrationSerializer(serializers.ModelSerializer):
         )
         student.set_password(validated_data["password"])
         student.save()
+
         return student
 
 
