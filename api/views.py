@@ -28,6 +28,7 @@ from .pagination import (
 from .filters import BookFilter, AuthorFilter, CategoryFilter, IssuedBookFilter
 from rest_framework.permissions import IsAdminUser, AllowAny
 from datetime import datetime, timedelta
+from .decorators import permission_required
 
 
 # List and Create Author :-
@@ -37,11 +38,7 @@ class AuthorListCreateAPIView(generics.ListCreateAPIView):
     filter_backends = [DjangoFilterBackend]
     filterset_class = AuthorFilter
 
-    def get_permissions(self):
-        if self.request.method == "POST":
-            return [permissions.IsAdminUser()]
-        return [permissions.AllowAny()]
-
+    @permission_required
     def create(self, request):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
@@ -61,10 +58,13 @@ class AuthorRetrieveUpdateDestroyAPIView(
     queryset = Author.objects.all()
     serializer_class = AuthorSerializer
 
-    def get_permissions(self):
-        if self.request.method in ["PUT", "PATCH", "DELETE"]:
-            return [permissions.IsAdminUser()]
-        return [permissions.AllowAny()]
+    @permission_required
+    def update(self, request, *args, **kwargs):
+        return super().update(request, *args, **kwargs)
+
+    @permission_required
+    def destroy(self, request, *args, **kwargs):
+        return super().destroy(request, *args, **kwargs)
 
 
 # List and Create Category
@@ -75,6 +75,18 @@ class CategoryListCreateAPIView(generics.ListCreateAPIView):
     filter_backends = [DjangoFilterBackend]
     filterset_class = CategoryFilter
 
+    @permission_required
+    def create(self, request):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        self.perform_create(serializer)
+
+        # Create a success message
+        return Response({
+            'message': 'Category created successfully!',
+            'author': serializer.data
+        }, status=status.HTTP_201_CREATED)
+
 
 # Retrieve, Update, and Delete Category
 class CategoryRetrieveUpdateDestroyAPIView(
@@ -82,6 +94,14 @@ class CategoryRetrieveUpdateDestroyAPIView(
 ):
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
+
+    @permission_required
+    def update(self, request, *args, **kwargs):
+        return super().update(request, *args, **kwargs)
+
+    @permission_required
+    def destroy(self, request, *args, **kwargs):
+        return super().destroy(request, *args, **kwargs)
 
 
 # List and Create Books
@@ -93,11 +113,7 @@ class BookListCreateAPIView(generics.ListCreateAPIView):
     filterset_class = BookFilter
     ordering_fields = ["title", "publication_date", "quantity"]
 
-    def get_permissions(self):
-        if self.request.method == "POST":
-            return [permissions.IsAdminUser()]
-        return [permissions.AllowAny()]
-
+    @permission_required
     def create(self, request):
         serializer = self.get_serializer(data=request.data)
         if Book.objects.filter(title=serializer.initial_data.get('title')).exists():
@@ -117,10 +133,13 @@ class BookRetrieveUpdateDestroyAPIView(generics.RetrieveUpdateDestroyAPIView):
     queryset = Book.objects.all()
     serializer_class = BookSerializer
 
-    def get_permissions(self):
-        if self.request.method in ["PUT", "PATCH", "DELETE"]:
-            return [permissions.IsAdminUser()]
-        return [permissions.IsAuthenticated()]
+    @permission_required
+    def update(self, request, *args, **kwargs):
+        return super().update(request, *args, **kwargs)
+
+    @permission_required
+    def destroy(self, request, *args, **kwargs):
+        return super().destroy(request, *args, **kwargs)
 
 
 # List and Create API for Course (With Pagination)
@@ -129,10 +148,13 @@ class CourseListCreateAPIView(generics.ListCreateAPIView):
     serializer_class = CourseSerializer
     pagination_class = CoursePagination
 
-    def get_permissions(self):
-        if self.request.method == "POST":
-            return [permissions.IsAdminUser()]
-        return [permissions.AllowAny()]
+    @permission_required
+    def create(self, request):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        self.perform_create(serializer)
+
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
 
 
 # Retrieve, Update, and Delete API for Course
@@ -142,10 +164,13 @@ class CourseRetrieveUpdateDestroyAPIView(
     queryset = Course.objects.all()
     serializer_class = CourseSerializer
 
-    def get_permissions(self):
-        if self.request.method in ["PUT", "PATCH", "DELETE"]:
-            return [permissions.IsAdminUser()]
-        return [permissions.AllowAny()]
+    @permission_required
+    def update(self, request, *args, **kwargs):
+        return super().update(request, *args, **kwargs)
+
+    @permission_required
+    def destroy(self, request, *args, **kwargs):
+        return super().destroy(request, *args, **kwargs)
 
 
 # Student Registration (SignUp API)
@@ -232,14 +257,14 @@ class StudentListAPIView(generics.ListAPIView):
     pagination_class = StudentPagination
     permission_classes = [permissions.IsAuthenticated]
 
-    # def list(self, request):
-    #     response = super().list(request)
-    #     return Response(
-    #         {
-    #             "message": "Students retrieved successfully!",
-    #             "data": response.data,
-    #         }
-    #     )
+    def list(self, request):
+        response = super().list(request)
+        return Response(
+            {
+                "message": "Students retrieved successfully!",
+                "data": response.data,
+            }
+        )
 
 
 class IssueBookView(generics.CreateAPIView):
