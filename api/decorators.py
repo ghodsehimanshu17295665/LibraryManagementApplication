@@ -3,7 +3,7 @@ from rest_framework.response import Response
 from rest_framework import status
 
 
-def permission_required(func):
+def custom_permission(func):
     @wraps(func)
     def inner(self, request, *args, **kwargs):
         # Check permissions for non-GET requests
