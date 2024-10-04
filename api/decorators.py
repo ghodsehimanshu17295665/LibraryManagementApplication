@@ -6,19 +6,21 @@ from rest_framework import status
 def permission_required(func):
     @wraps(func)
     def inner(self, request, *args, **kwargs):
-        # Check permissions based on the request method
+        # Check permissions for non-GET requests
         if request.method in ["POST", "PUT", "PATCH", "DELETE"]:
-            # Check if user is superuser
+            # Allow only superusers to perform write actions
             if not request.user.is_superuser:
                 return Response(
-                    {'detail': 'You do not have permission to perform this action.'},
+                    {'detail': 'Only superusers can perform this action.'},
                     status=status.HTTP_403_FORBIDDEN
                 )
-        elif request.method in ["GET"]:
-            # Check if user is authenticated
+
+        # Check permissions for GET requests
+        elif request.method == "GET":
+            # Allow only authenticated users to view content
             if not request.user.is_authenticated:
                 return Response(
-                    {'detail': 'You must be logged in to perform this action.'},
+                    {'detail': 'Authentication is required to view this content.'},
                     status=status.HTTP_403_FORBIDDEN
                 )
 
