@@ -28,84 +28,164 @@ from .pagination import (
 from .filters import BookFilter, AuthorFilter, CategoryFilter, IssuedBookFilter
 from rest_framework.permissions import IsAdminUser, AllowAny
 from datetime import datetime, timedelta
-from .decorators import permission_required
+from .decorators import custom_permission
+from django.shortcuts import get_object_or_404
 
 
-# List and Create Author :-
-class AuthorListCreateAPIView(generics.ListCreateAPIView):
+class AuthorView(generics.GenericAPIView):
     queryset = Author.objects.all()
     serializer_class = AuthorSerializer
     filter_backends = [DjangoFilterBackend]
     filterset_class = AuthorFilter
 
-    @permission_required
-    def create(self, request):
+    def get_objects(self):
+        return get_object_or_404(self.get_queryset(), pk=self.kwargs.get('pk'))
+
+    def get(self, request, *args, **kwargs):
+        if 'pk' in kwargs:
+            # Retrieve a single author
+            author = self.get_object()
+            serializer = self.get_serializer(author)
+            return Response(serializer.data)
+        else:
+            # List all authors
+            authors = self.filter_queryset(self.get_queryset())
+            serializer = self.get_serializer(authors, many=True)
+            return Response(serializer.data)
+
+    @custom_permission
+    def post(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         self.perform_create(serializer)
 
-        # Create a success message
         return Response({
             'message': 'Author created successfully!',
             'author': serializer.data
         }, status=status.HTTP_201_CREATED)
 
+    def perform_create(self, serializer):
+        serializer.save()
 
-# Retrieve, Update, and Delete
-class AuthorRetrieveUpdateDestroyAPIView(
-    generics.RetrieveUpdateDestroyAPIView
-):
-    queryset = Author.objects.all()
-    serializer_class = AuthorSerializer
+    @custom_permission
+    def put(self, request, *args, **kwargs):
+        author = self.get_object()
+        serializer = self.get_serializer(author, data=request.data)
+        serializer.is_valid(raise_exception=True)
+        self.perform_update(serializer)
 
-    @permission_required
-    def update(self, request, *args, **kwargs):
-        return super().update(request, *args, **kwargs)
+        # Return response with success message and updated author data
+        return Response({
+            'message': 'Author updated successfully!',
+            'author': serializer.data
+        }, status=status.HTTP_200_OK)
 
-    @permission_required
-    def destroy(self, request, *args, **kwargs):
-        return super().destroy(request, *args, **kwargs)
+    def perform_update(self, serializer):
+        serializer.save()
+
+    @custom_permission
+    def patch(self, request, *args, **kwargs):
+        author = self.get_object()
+        serializer = self.get_serializer(author, data=request.data, partial=True)
+        serializer.is_valid(raise_exception=True)
+        self.perform_update(serializer)
+
+        return Response({
+            'message': 'Author partially updated successfully!',
+            'author': serializer.data
+        }, status=status.HTTP_200_OK)
+
+    @custom_permission
+    def delete(self, request, *args, **kwargs):
+        author = self.get_object()  # Retrieve the author object
+        self.perform_destroy(author)  # Perform the deletion
+
+        # Return response with success message
+        return Response({
+            'message': 'Author deleted successfully!'
+        }, status=status.HTTP_204_NO_CONTENT)
+
+    def perform_destroy(self, instance):
+        instance.delete()
 
 
-# List and Create Category
-class CategoryListCreateAPIView(generics.ListCreateAPIView):
+class CategoryView(generics.GenericAPIView):
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
     pagination_class = CategoryPagination
     filter_backends = [DjangoFilterBackend]
-    filterset_class = CategoryFilter
+    filter_class = CategoryFilter
 
-    @permission_required
-    def create(self, request):
+    def get_objects(self):
+        return get_object_or_404(self.get_queryset(), pk=self.kwargs.get('pk'))
+
+    def get(self, request, *args, **kwargs):
+        if 'pk' in kwargs:
+            # Retrieve a single category
+            category = self.get_object()
+            serializer = self.get_serializer(category)
+            return Response(serializer.data)
+        else:
+            # List all categories
+            categories = self.filter_queryset(self.get_queryset())
+            serializer = self.get_serializer(categories, many=True)
+            return Response(serializer.data)
+
+    @custom_permission
+    def post(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         self.perform_create(serializer)
 
-        # Create a success message
         return Response({
             'message': 'Category created successfully!',
-            'author': serializer.data
+            'category': serializer.data
         }, status=status.HTTP_201_CREATED)
 
+    def perform_create(self, serializer):
+        serializer.save()
 
-# Retrieve, Update, and Delete Category
-class CategoryRetrieveUpdateDestroyAPIView(
-    generics.RetrieveUpdateDestroyAPIView
-):
-    queryset = Category.objects.all()
-    serializer_class = CategorySerializer
+    @custom_permission
+    def put(self, request, *args, **kwargs):
+        category = self.get_object()
+        serializer = self.get_serializer(category, data=request.data)
+        serializer.is_valid(raise_exception=True)
+        self.perform_update(serializer)
 
-    @permission_required
-    def update(self, request, *args, **kwargs):
-        return super().update(request, *args, **kwargs)
+        return Response({
+            'message': 'Category updated successfully!',
+            'category': serializer.data
+        }, status=status.HTTP_200_OK)
 
-    @permission_required
-    def destroy(self, request, *args, **kwargs):
-        return super().destroy(request, *args, **kwargs)
+    def perform_update(self, serializer):
+        serializer.save()
+
+    @custom_permission
+    def patch(self, request, *args, **kwargs):
+        category = self.get_object()
+        serializer = self.get_serializer(category, data=request.data, partial=True)
+        serializer.is_valid(raise_exception=True)
+        self.perform_update(serializer)
+
+        return Response({
+            'message': 'Category partially updated successfully!',
+            'category': serializer.data
+        }, status=status.HTTP_200_OK)
+
+    @custom_permission
+    def delete(self, request, *args, **kwargs):
+        category = self.get_object()
+        self.perform_destroy(category)
+
+        return Response({
+            'message': 'Category deleted successfully!'
+        }, status=status.HTTP_204_NO_CONTENT)
+
+    def perform_destroy(self, instance):
+        instance.delete()
 
 
-# List and Create Books
-class BookListCreateAPIView(generics.ListCreateAPIView):
+class BookView(generics.GenericAPIView):
     queryset = Book.objects.all()
     serializer_class = BookSerializer
     pagination_class = BookPagination
@@ -113,64 +193,182 @@ class BookListCreateAPIView(generics.ListCreateAPIView):
     filterset_class = BookFilter
     ordering_fields = ["title", "publication_date", "quantity"]
 
-    @permission_required
-    def create(self, request):
-        serializer = self.get_serializer(data=request.data)
-        if Book.objects.filter(title=serializer.initial_data.get('title')).exists():
-            return Response(
-                {'error': 'A book with this title already exists.'},
-                status=status.HTTP_400_BAD_REQUEST
-            )
+    def get_object(self):
+        return get_object_or_404(self.get_queryset(), pk=self.kwargs.get('pk'))
 
+    def get(self, request, *args, **kwargs):
+        if 'pk' in kwargs:
+            # Retrive a  Single Book.
+            book = self.get_object()
+            serializer = self.get_serializer(book)
+            return Response(serializer.data)
+        else:
+            # List all Books
+            books = self.filter_queryset(self.get_queryset())
+            serializer = self.get_serializer(books, many=True)
+            return Response(serializer.data)
+
+    @custom_permission
+    def post(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         self.perform_create(serializer)
 
-        return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response({
+            'message': 'Book Created Successfully!',
+            'book': serializer.data
+        }, status=status.HTTP_201_CREATED)
+
+    def perform_create(self, serializer):
+        serializer.save()
+
+    @custom_permission
+    def put(self, request, *args, **kwargs):
+        book = self.get_object()
+        serializer = self.get_serializer(book, data=request.data)
+        serializer.is_valid(raise_exception=True)
+        self.perform_update(serializer)
+
+        return Response({
+            'message': 'Book Updated Successfully!',
+            'book': serializer.data
+        }, status=status.HTTP_200_OK)
+
+    def perform_update(self, serializer):
+        serializer.save()
+
+    @custom_permission
+    def patch(self, request, *args, **kwargs):
+        book = self.get_object()
+        serializer = self.get_serializer(book, data=request.data, partial=True)
+        serializer.is_valid(raise_exception=True)
+        self.perform_update(serializer)
+
+        return Response({
+            'message': 'Book Partially update Successfully!',
+            'book': serializer.data
+        }, status=status.HTTP_200_OK)
+
+    @custom_permission
+    def delete(self, request, *args, **kwargs):
+        book = self.get_object()
+        self.perform_destroy(book)
+
+        return Response({
+            'message': 'Book deleted Successfully!'
+        }, status=status.HTTP_204_NO_CONTENT)
+
+    def perform_destroy(self, instance):
+        instance.delete()
 
 
-# Retrive, Update, and Delete Book
-class BookRetrieveUpdateDestroyAPIView(generics.RetrieveUpdateDestroyAPIView):
-    queryset = Book.objects.all()
-    serializer_class = BookSerializer
-
-    @permission_required
-    def update(self, request, *args, **kwargs):
-        return super().update(request, *args, **kwargs)
-
-    @permission_required
-    def destroy(self, request, *args, **kwargs):
-        return super().destroy(request, *args, **kwargs)
-
-
-# List and Create API for Course (With Pagination)
-class CourseListCreateAPIView(generics.ListCreateAPIView):
+class CourseView(generics.GenericAPIView):
     queryset = Course.objects.all()
     serializer_class = CourseSerializer
     pagination_class = CoursePagination
 
-    @permission_required
-    def create(self, request):
+    def get_object(self):
+        return get_object_or_404(self.get_queryset(), pk=self.kwarg.get('pk'))
+
+    def get(self, request, *args, **kwargs):
+        if 'pk' in kwargs:
+            # Retrive a Single Course
+            course = self.get_object()
+            serializer = self.get_serializer(course)
+            return Response(serializer.data)
+        else:
+            # List All Courses
+            courses = self.filter_queryset(self.get_queryset())
+            serializer = self.get_serializer(courses, many=True)
+            return Response(serializer.data)
+
+    @custom_permission
+    def post(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         self.perform_create(serializer)
 
-        return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response({
+            'message': 'Course Created Successfully!',
+            'course': serializer.data
+        }, status=status.HTTP_201_CREATED)
+
+    def perform_create(self, serializer):
+        serializer.save()
+
+    @custom_permission
+    def put(self, request, *args, **kwargs):
+        course = self.get_object()
+        serializer = self.get_serializer(course, data=request.data)
+        serializer.is_valid(raise_exception=True)
+        self.perform_update(serializer)
+
+        return Response({
+            'message': 'Course Updated Successfully!',
+            'course': serializer.data
+        }, status=status.HTTP_200_OK)
+
+    def perform_update(self, serializer):
+        serializer.save()
+    
+    @custom_permission
+    def patch(self, request, *args, **kwargs):
+        course = self.get_object()
+        serializer = self.get_serializer(course, data=request.data)
+        serializer.is_valid(raise_exception=True)
+        self.perform_update(serializer)
+
+        return Response({
+            'message': 'Course Updated Partially Successfully!',
+            'course': serializer.data
+        }, status=status.HTTP_200_OK)
+
+    @custom_permission
+    def delete(self, request, *args, **kwargs):
+        book = self.get_object()
+        self.perform_destroy(book)
+
+        return Response({
+            'message': 'Book deleted Successfully!'
+        }, status=status.HTTP_204_NO_CONTENT)
+
+    def perform_destroy(self, instance):
+        instance.delete()
 
 
-# Retrieve, Update, and Delete API for Course
-class CourseRetrieveUpdateDestroyAPIView(
-    generics.RetrieveUpdateDestroyAPIView
-):
-    queryset = Course.objects.all()
-    serializer_class = CourseSerializer
 
-    @permission_required
-    def update(self, request, *args, **kwargs):
-        return super().update(request, *args, **kwargs)
 
-    @permission_required
-    def destroy(self, request, *args, **kwargs):
-        return super().destroy(request, *args, **kwargs)
+
+
+# # List and Create API for Course (With Pagination)
+# class CourseListCreateAPIView(generics.ListCreateAPIView):
+#     queryset = Course.objects.all()
+#     serializer_class = CourseSerializer
+#     pagination_class = CoursePagination
+
+#     @custom_permission
+#     def create(self, request):
+#         serializer = self.get_serializer(data=request.data)
+#         serializer.is_valid(raise_exception=True)
+#         self.perform_create(serializer)
+
+#         return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+
+# # Retrieve, Update, and Delete API for Course
+# class CourseRetrieveUpdateDestroyAPIView(
+#     generics.RetrieveUpdateDestroyAPIView
+# ):
+#     queryset = Course.objects.all()
+#     serializer_class = CourseSerializer
+
+#     @custom_permission
+#     def update(self, request, *args, **kwargs):
+#         return super().update(request, *args, **kwargs)
+
+#     @custom_permission
+#     def destroy(self, request, *args, **kwargs):
+#         return super().destroy(request, *args, **kwargs)
 
 
 # Student Registration (SignUp API)
@@ -210,26 +408,6 @@ class StudentLogoutAPIView(generics.GenericAPIView):
     def post(self, request):
         return Response({"message": "Successfully logged out!"}, status=200)
 
-
-# Retrieve and Update Student Information
-# class StudentRetrieveUpdateAPIView(APIView):
-#     permission_classes = [permissions.IsAuthenticated]
-
-#     def get(self, request, pk, *args, **kwargs):
-#         student = Student.objects.get(pk=pk)
-#         serializer = StudentSerializer(student)
-#         return Response(serializer.data)
-
-#     def put(self, request, pk, *args, **kwargs):
-#         student = Student.objects.get(pk=pk)
-#         serializer = StudentSerializer(student, data=request.data, partial=True)
-#         if serializer.is_valid():
-#             serializer.save()
-#             return Response({
-#                 'message': 'Student information updated successfully!',
-#                 'data': serializer.data
-#             }, status=200)
-#         return Response(serializer.errors, status=400)
 
 class StudentRetrieveUpdateAPIView(generics.RetrieveUpdateAPIView):
     queryset = Student.objects.all()
@@ -298,106 +476,3 @@ class IssuedBookListView(generics.ListAPIView):
 
     def get_queryset(self):
         return IssuedBook.objects.filter(is_returned=False)
-
-
-# class IssueBookView(APIView):
-#     def post(self, request, *args, **kwargs):
-#         book_id = request.data.get("book")  # This is String
-
-#         # Get the book Object
-#         book = Book.objects.filter(id=book_id).fiCreateAPIViewrst()
-#         if not book:
-#             return Response(
-#                 {"msg": "Book Not Found"}, status=status.HTTP_404_NOT_FOUND
-#             )
-
-#         student = request.user  # This is user Objects
-#         if not student:
-#             return Response(
-#                 {"msg": "Student Not Found"}, status=status.HTTP_404_NOT_FOUND
-#             )
-
-#         # Check if the book is already issued and not returned
-#         is_book_issued = IssuedBook.objects.filter(
-#             book=book, student=student, is_returned=False
-#         )
-
-#         if book.quantity <= 0:
-#             return Response(
-#                 {"msg": "No Book available to issue"},
-#                 status=status.HTTP_400_BAD_REQUEST,
-#             )
-
-#         book.quantity -= 1
-#         book.save()
-
-#         if is_book_issued:
-#             return Response(
-#                 {"msg": "Book is already issued"},
-#                 status=status.HTTP_400_BAD_REQUEST,
-#             )
-
-#         issued_book = IssuedBook(
-#             book=book,
-#             student=student,
-#             issue_date=datetime.now(),
-#             due_date=datetime.now() + timedelta(days=10),
-#             is_returned=False,
-#         )
-
-#         issued_book.save()
-
-#         return Response(
-#             {
-#                 "id": issued_book.id,
-#                 "book": issued_book.book.id,
-#                 "student": issued_book.student.id,
-#                 "issue_date": issued_book.issue_date,
-#                 "due_date": issued_book.due_date,
-#                 "is_returned": issued_book.is_returned,
-#             },
-#             status=status.HTTP_201_CREATED,
-#         )
-
-
-# class ReturnBookView(APIView):
-#     def post(self, request, *args, **kwargs):
-#         issued_book_id = request.data.get("issued_book")
-
-#         # Get the issued book
-#         issued_book = IssuedBook.objects.filter(id=issued_book_id).first()
-
-#         if not issued_book:
-#             return Response(
-#                 {"msg": "Issued book record not found."},
-#                 status=status.HTTP_404_NOT_FOUND,
-#             )
-
-#         student = request.user
-#         if not student:
-#             return Response(
-#                 {"msg": "User not authenticated"},
-#                 status=status.HTTP_401_UNAUTHORIZED,
-#             )
-
-#         # Check if the book has already been returned
-#         if issued_book.is_returned:
-#             return Response(
-#                 {"msg": "This book has already been returned."},
-#                 status=status.HTTP_400_BAD_REQUEST,
-#             )
-
-#         # Mark the book as returned
-#         issued_book.is_returned = True
-#         issued_book.return_date = now().date()
-#         issued_book.save()
-
-#         # Get the associated book and increase the quantity
-#         book = issued_book.book
-#         book.quantity += 1
-#         book.save()
-
-#         return Response(
-#             {"message": "Book returned successfully."},
-#             status=status.HTTP_200_OK,
-#         )
