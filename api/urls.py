@@ -1,13 +1,9 @@
 from django.urls import path
 from .views import (
-    AuthorListCreateAPIView,
-    AuthorRetrieveUpdateDestroyAPIView,
-    CategoryListCreateAPIView,
-    CategoryRetrieveUpdateDestroyAPIView,
-    BookListCreateAPIView,
-    BookRetrieveUpdateDestroyAPIView,
-    CourseListCreateAPIView,
-    CourseRetrieveUpdateDestroyAPIView,
+    AuthorView,
+    CategoryView,
+    BookView,
+    CourseView,
     StudentRegistrationAPIView,
     StudentLoginAPIView,
     StudentLogoutAPIView,
@@ -24,42 +20,15 @@ from rest_framework_simplejwt.views import (
 
 
 urlpatterns = [
-    path(
-        "authors/",
-        AuthorListCreateAPIView.as_view(),
-        name="author-list-create",
-    ),
-    path(
-        "authors/<uuid:pk>/",
-        AuthorRetrieveUpdateDestroyAPIView.as_view(),
-        name="author-detail",
-    ),
-    path(
-        "categories/",
-        CategoryListCreateAPIView.as_view(),
-        name="category-list-create",
-    ),
-    path(
-        "categories/<uuid:pk>/",
-        CategoryRetrieveUpdateDestroyAPIView.as_view(),
-        name="category-detail",
-    ),
-    path("books/", BookListCreateAPIView.as_view(), name="book-list-create"),
-    path(
-        "books/<uuid:pk>/",
-        BookRetrieveUpdateDestroyAPIView.as_view(),
-        name="book-detail",
-    ),
-    path(
-        "courses/",
-        CourseListCreateAPIView.as_view(),
-        name="course-list-create",
-    ),
-    path(
-        "courses/<uuid:pk>/",
-        CourseRetrieveUpdateDestroyAPIView.as_view(),
-        name="course-detail",
-    ),
+    path('authors/', AuthorView.as_view(), name='author-list-create'),
+    path('authors/<uuid:pk>/', AuthorView.as_view(), name='author-detail'),
+    path('categories/', CategoryView.as_view(), name='categories-list-create'),
+    path('categories/<uuid:pk>/', CategoryView.as_view(), name='categories-detail'),
+    path('books/', BookView.as_view(), name='books-list-create'),
+    path('books/<uuid:pk>/', BookView.as_view(), name='books-detail'),
+    path('courses/', CourseView.as_view(), name='course-list-create'),
+    path('courses/<uuid:pk>/', CourseView.as_view(), name='course-detail'),
+
     path(
         "students/register/",
         StudentRegistrationAPIView.as_view(),
@@ -95,3 +64,7 @@ urlpatterns = [
 # author/update/
 # author/list/
 # author/retireve
+# urlpatterns = [
+#     path('authors/', AuthorView.as_view(), name='author-list-create'),
+#     path('authors/<int:pk>/', AuthorView.as_view(), name='author-detail'),
+# ]
