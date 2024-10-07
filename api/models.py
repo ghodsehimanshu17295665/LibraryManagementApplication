@@ -65,7 +65,9 @@ class Course(TimeStampedModel):
 
 class Student(AbstractUser, TimeStampedModel):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    course = models.ForeignKey(Course, null=True, blank=True, on_delete=models.SET_NULL)
+    course = models.ForeignKey(
+        Course, null=True, blank=True, on_delete=models.SET_NULL
+    )
     enrollment_number = models.CharField(max_length=15, unique=True)
     phone_number = models.CharField(max_length=15, unique=True)
 
