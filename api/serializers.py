@@ -18,7 +18,9 @@ class CategorySerializer(serializers.ModelSerializer):
 
 class BookSerializer(serializers.ModelSerializer):
     author = serializers.PrimaryKeyRelatedField(queryset=Author.objects.all())
-    category = serializers.PrimaryKeyRelatedField(queryset=Category.objects.all())
+    category = serializers.PrimaryKeyRelatedField(
+        queryset=Category.objects.all()
+    )
 
     class Meta:
         model = Book
@@ -43,7 +45,8 @@ class StudentSerializer(serializers.ModelSerializer):
     # Allow course to be updated by its name
     course = serializers.SlugRelatedField(
         slug_field="name",  # Use course name for updates
-        queryset=Course.objects.all()  # Ensure the queryset contains all courses
+        #  Ensure the queryset contains all courses
+        queryset=Course.objects.all(),
     )
 
     class Meta:
@@ -61,7 +64,8 @@ class StudentSerializer(serializers.ModelSerializer):
 class StudentRegistrationSerializer(serializers.ModelSerializer):
     course = serializers.SlugRelatedField(
         slug_field="name",  # Allows using course name instead of course ID
-        queryset=Course.objects.all()  # You need to provide a queryset to look up the Course by name
+        # You need to provide a queryset to look up the Course by name
+        queryset=Course.objects.all(),
     )
 
     class Meta:
@@ -79,7 +83,8 @@ class StudentRegistrationSerializer(serializers.ModelSerializer):
         student = Student.objects.create(
             username=validated_data["username"],
             email=validated_data["email"],
-            course=validated_data["course"],  # Course object is automatically looked up by name
+            # Course object is automatically looked up by name
+            course=validated_data["course"],
             enrollment_number=validated_data["enrollment_number"],
             phone_number=validated_data["phone_number"],
         )
@@ -101,25 +106,6 @@ class StudentLoginSerializer(serializers.Serializer):
         if user and user.is_active:
             return user
         raise serializers.ValidationError("Invalid credentials")
-
-
-# class IssuedBookSerializer(serializers.ModelSerializer):
-#     student = serializers.PrimaryKeyRelatedField(
-#         queryset=Student.objects.all()
-#     )
-#     book = serializers.PrimaryKeyRelatedField(queryset=Book.objects.all())
-
-#     class Meta:
-#         model = IssuedBook
-#         fields = [
-#             "id",
-#             "student",
-#             "book",
-#             "issue_date",
-#             "due_date",
-#             "return_date",
-#             "is_returned",
-#         ]
 
 
 class IssuedBookSerializer(serializers.ModelSerializer):
