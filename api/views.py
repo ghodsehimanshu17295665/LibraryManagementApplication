@@ -3,7 +3,6 @@ from rest_framework import filters
 from django.utils.timezone import now
 from rest_framework import status
 from rest_framework import generics, permissions
-from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import RefreshToken
 from .models import Author, Category, Book, Course, Student, IssuedBook
@@ -298,23 +297,35 @@ class CourseView(generics.GenericAPIView):
 
     @custom_permission
     def put(self, request, *args, **kwargs):
+        # Fetch the course object using get_object()
         course = self.get_object()
+
+        # Pass the course object and the updated data to the serializer
         serializer = self.get_serializer(course, data=request.data)
         serializer.is_valid(raise_exception=True)
+
+        # Perform the update
         self.perform_update(serializer)
 
+        # Return a success message along with the updated course data
         return Response({
             'message': 'Course Updated Successfully!',
             'course': serializer.data
         }, status=status.HTTP_200_OK)
 
     def perform_update(self, serializer):
+        # Save the updates to the course
         serializer.save()
-    
+
+    # Add a get_object method to retrieve the course instance by its pk (UUID)
+    def get_object(self):
+        # Use get_object_or_404 to get the course based on the UUID pk
+        return get_object_or_404(Course, pk=self.kwargs['pk'])
+
     @custom_permission
     def patch(self, request, *args, **kwargs):
         course = self.get_object()
-        serializer = self.get_serializer(course, data=request.data)
+        serializer = self.get_serializer(course, data=request.data, partial=True)
         serializer.is_valid(raise_exception=True)
         self.perform_update(serializer)
 
@@ -325,64 +336,50 @@ class CourseView(generics.GenericAPIView):
 
     @custom_permission
     def delete(self, request, *args, **kwargs):
-        book = self.get_object()
-        self.perform_destroy(book)
+        course = self.get_object()
+        self.perform_destroy(course)
 
         return Response({
-            'message': 'Book deleted Successfully!'
+            'message': 'Course deleted Successfully!'
         }, status=status.HTTP_204_NO_CONTENT)
 
     def perform_destroy(self, instance):
         instance.delete()
 
 
-
-
-
-
-# # List and Create API for Course (With Pagination)
-# class CourseListCreateAPIView(generics.ListCreateAPIView):
-#     queryset = Course.objects.all()
-#     serializer_class = CourseSerializer
-#     pagination_class = CoursePagination
-
-#     @custom_permission
-#     def create(self, request):
-#         serializer = self.get_serializer(data=request.data)
-#         serializer.is_valid(raise_exception=True)
-#         self.perform_create(serializer)
-
-#         return Response(serializer.data, status=status.HTTP_201_CREATED)
-
-
-# # Retrieve, Update, and Delete API for Course
-# class CourseRetrieveUpdateDestroyAPIView(
-#     generics.RetrieveUpdateDestroyAPIView
-# ):
-#     queryset = Course.objects.all()
-#     serializer_class = CourseSerializer
-
-#     @custom_permission
-#     def update(self, request, *args, **kwargs):
-#         return super().update(request, *args, **kwargs)
-
-#     @custom_permission
-#     def destroy(self, request, *args, **kwargs):
-#         return super().destroy(request, *args, **kwargs)
-
-
 # Student Registration (SignUp API)
-class StudentRegistrationAPIView(generics.CreateAPIView):
+class StudentRegistrationAPIView(generics.GenericAPIView):
     queryset = Student.objects.all()
     serializer_class = StudentRegistrationSerializer
 
+    def post(self, request):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        student = serializer.save()
+
+        return Response({
+            'message': 'Student registered successfully!',
+            'student': self.get_serializer(student).data
+        }, status=status.HTTP_201_CREATED)
+
 
 # Login view
-class StudentLoginAPIView(generics.GenericAPIView):
+class StudentLoginLogoutAPIView(generics.GenericAPIView):
     queryset = Student.objects.all()
     serializer_class = StudentLoginSerializer
+    permission_classes = [permissions.AllowAny]
 
-    def post(self, request):
+    def post(self, request, *args, **kwargs):
+        action = self.kwargs.get('action')
+
+        if action == 'login':
+            return self.handle_login(request)
+        elif action == 'logout':
+            return self.handle_logout(request)
+        else:
+            return Response({"detail": "Invalid action."}, status=status.HTTP_400_BAD_REQUEST)
+
+    def handle_login(self, request):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         user = serializer.validated_data
@@ -397,25 +394,68 @@ class StudentLoginAPIView(generics.GenericAPIView):
                 "refresh": str(refresh),
                 "access": str(refresh.access_token),
             },
-            status=200,
+            status=status.HTTP_200_OK,
         )
 
-
-# Logout view
-class StudentLogoutAPIView(generics.GenericAPIView):
-    permission_classes = [permissions.IsAuthenticated]
-
-    def post(self, request):
-        return Response({"message": "Successfully logged out!"}, status=200)
+    def handle_logout(self, request):
+        return Response({"message": "Successfully logged out!"}, status=status.HTTP_200_OK)
 
 
-class StudentRetrieveUpdateAPIView(generics.RetrieveUpdateAPIView):
+class StudentAPIView(generics.GenericAPIView):
     queryset = Student.objects.all()
     serializer_class = StudentSerializer
+    pagination_class = StudentPagination
     permission_classes = [permissions.IsAuthenticated]
 
-    def delete(self, request, **kwargs):
-        # Get the student instance that is being accessed
+    def get(self, request, *args, **kwargs):
+        if 'pk' in kwargs:
+            student = self.get_object()
+            serializer = self.get_serializer(student)
+            return Response({
+                "message": "Student retrieved successfully!",
+                "data": serializer.data,
+            }, status=status.HTTP_200_OK)
+        else:
+            # List All Students
+            students = self.filter_queryset(self.get_queryset())
+
+            page = self.paginate_queryset(students)
+            if page is not None:
+                serializer = self.get_serializer(page, many=True)
+                return self.get_paginated_response(serializer.data)
+
+            serializer = self.get_serializer(students, many=True)
+            return Response({
+                "message": "Students retrieved successfully!",
+                "data": serializer.data,
+            }, status=status.HTTP_200_OK)
+
+    def put(self, request, *args, **kwargs):
+        student = self.get_object()
+        serializer = self.get_serializer(student, data=request.data)
+        serializer.is_valid(raise_exception=True)
+        self.perform_update(serializer)
+
+        return Response({
+            'message': 'Student Updated Successfully!',
+            'data': serializer.data
+        }, status=status.HTTP_200_OK)
+
+    def perform_update(self, serializer):
+        serializer.save()
+
+    def patch(self, request, *args, **kwargs):
+        student = self.get_object()
+        serializer = self.get_serializer(student, data=request.data, partial=True)
+        serializer.is_valid(raise_exception=True)
+        self.perform_update(serializer)
+
+        return Response({
+            'message': 'Student Partially Updated Successfully!',
+            'data': serializer.data
+        }, status=status.HTTP_200_OK)
+
+    def delete(self, request, *args, **kwargs):
         student = self.get_object()
 
         # Check if the authenticated user matches the student
@@ -428,26 +468,37 @@ class StudentRetrieveUpdateAPIView(generics.RetrieveUpdateAPIView):
                             status=status.HTTP_403_FORBIDDEN)
 
 
-# Get All Students with Pagination
-class StudentListAPIView(generics.ListAPIView):
-    queryset = Student.objects.all()
-    serializer_class = StudentSerializer
-    pagination_class = StudentPagination
-    permission_classes = [permissions.IsAuthenticated]
-
-    def list(self, request):
-        response = super().list(request)
-        return Response(
-            {
-                "message": "Students retrieved successfully!",
-                "data": response.data,
-            }
-        )
-
-
-class IssueBookView(generics.CreateAPIView):
+class IssuedBookView(generics.GenericAPIView):
     queryset = IssuedBook.objects.all()
     serializer_class = IssuedBookSerializer
+    pagination_class = IssuedBookPagination
+    filterset_class = IssuedBookFilter
+
+    def post(self, request):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        self.perform_create(serializer)
+
+        return Response({
+            'message': 'Book Issued Successfully!',
+            'course': serializer.data
+        }, status=status.HTTP_201_CREATED)
+
+    def perform_create(self, serializer):
+        serializer.save()
+
+    def get(self, request, *args, **kwargs):
+        issued_books = self.filter_queryset(self.get_queryset().filter(is_returned=False))
+        page = self.paginate_queryset(issued_books)
+        if page is not None:
+            serializer = self.get_serializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
+
+        serializer = self.get_serializer(issued_books, many=True)
+        return Response({
+            "message": "Issued books retrieved successfully!",
+            "data": serializer.data,
+        }, status=status.HTTP_200_OK)
 
 
 class ReturnBookView(generics.GenericAPIView):
@@ -466,13 +517,3 @@ class ReturnBookView(generics.GenericAPIView):
             {"message": "Book returned successfully!", "issued_book_id": issued_book.id},
             status=status.HTTP_200_OK
         )
-
-
-class IssuedBookListView(generics.ListAPIView):
-    queryset = IssuedBook.objects.all()
-    serializer_class = IssuedBookSerializer
-    pagination_class = IssuedBookPagination
-    filterset_class = IssuedBookFilter
-
-    def get_queryset(self):
-        return IssuedBook.objects.filter(is_returned=False)
