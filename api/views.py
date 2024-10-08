@@ -4,7 +4,6 @@ from django.utils.timezone import now
 from rest_framework import status
 from rest_framework import generics, permissions
 from rest_framework.response import Response
-from rest_framework_simplejwt.tokens import RefreshToken
 from .models import Author, Category, Book, Course, Student, IssuedBook
 from .serializers import (
     AuthorSerializer,
@@ -29,7 +28,8 @@ from rest_framework.permissions import IsAdminUser, AllowAny
 from datetime import datetime, timedelta
 from .decorators import custom_permission
 from django.shortcuts import get_object_or_404
-
+from django.contrib.auth import logout
+from rest_framework_simplejwt.tokens import AccessToken, RefreshToken
 
 class AuthorView(generics.GenericAPIView):
     queryset = Author.objects.all()
@@ -398,7 +398,13 @@ class StudentLoginLogoutAPIView(generics.GenericAPIView):
         )
 
     def handle_logout(self, request):
-        return Response({"message": "Successfully logged out!"}, status=status.HTTP_200_OK)
+        try:
+            refresh_token = request.data["refresh"]
+            token = RefreshToken(refresh_token)
+            token.blacklist()  # Blacklist the access token
+            return Response({"detail": "Logout successful"}, status=status.HTTP_205_RESET_CONTENT)
+        except Exception as e:
+            return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
 
 class StudentAPIView(generics.GenericAPIView):
@@ -473,6 +479,7 @@ class IssuedBookView(generics.GenericAPIView):
     serializer_class = IssuedBookSerializer
     pagination_class = IssuedBookPagination
     filterset_class = IssuedBookFilter
+    permission_classes = [permissions.IsAuthenticated]
 
     def post(self, request):
         serializer = self.get_serializer(data=request.data)
@@ -504,6 +511,7 @@ class IssuedBookView(generics.GenericAPIView):
 class ReturnBookView(generics.GenericAPIView):
     queryset = IssuedBook.objects.all()
     serializer_class = ReturnBookSerializer
+    permission_classes = [permissions.IsAuthenticated]
 
     def post(self, request):
         # Validate and serialize the input data
