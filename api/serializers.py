@@ -1,3 +1,4 @@
+import re
 from rest_framework import serializers
 from django.contrib.auth import authenticate
 from .models import Author, Book, Category, Course, Fine, IssuedBook, Student
@@ -9,18 +10,68 @@ class AuthorSerializer(serializers.ModelSerializer):
         model = Author
         fields = ["id", "name", "email", "birth_date", "nationality"]
 
+    # def validate(self, data):
+    #     name = data.get('name')
+    #     nationality = data.get('nationality')
+
+    #     if name and not name.isalpha():
+    #         raise serializers.ValidationError({"name": "The name field must only contain alphabetic characters."})
+
+    #     if nationality and not nationality.isalpha():
+    #         raise serializers.ValidationError({"nationality": "The nationality field must only contain alphabetic characters."})
+
+    #     return data
+    def validate(self, data):
+        name = data.get('name')
+        nationality = data.get('nationality')
+
+        # Allow alphabetic characters and spaces using regex
+        name_pattern = r'^[a-zA-Z\s]+$'
+        nationality_pattern = r'^[a-zA-Z\s]+$'
+
+        if name and not re.match(name_pattern, name):
+            raise serializers.ValidationError({"name": "The name field must only contain alphabetic characters and spaces."})
+
+        if nationality and not re.match(nationality_pattern, nationality):
+            raise serializers.ValidationError({"nationality": "The nationality field must only contain alphabetic characters and spaces."})
+
+        return data
+
 
 class CategorySerializer(serializers.ModelSerializer):
     class Meta:
         model = Category
         fields = ["id", "name", "description"]
 
+    def validate(self, data):
+        name = data.get('name')
+        description = data.get('description')
+
+        # Allow alphabetic characters and spaces using regex
+        name_pattern = r'^[a-zA-Z\s]+$'
+        if name and not re.match(name_pattern, name):
+            raise serializers.ValidationError({"name": "The name field must only contain alphabetic characters and spaces."})
+
+        description_pattern = r'^[a-zA-Z0-9\s.,!?]+$'
+        if description and len(description) < 10:
+            raise serializers.ValidationError({"description": "The description must be at least 10 characters long."})
+        if description and not re.match(description_pattern, description):
+            raise serializers.ValidationError({"description": "The description can only contain letters, numbers, spaces, and specific punctuation."})
+
+        return data
+
+    def create(self, validated_data):
+        # Check if a category with the same name already exists
+        if Category.objects.filter(name=validated_data['name']).exists():
+            raise serializers.ValidationError({"name": "A category with this name already exists."})
+
+        # If the category does not exist, create a new one
+        return super().create(validated_data)
+
 
 class BookSerializer(serializers.ModelSerializer):
-    author = serializers.PrimaryKeyRelatedField(queryset=Author.objects.all())
-    category = serializers.PrimaryKeyRelatedField(
-        queryset=Category.objects.all()
-    )
+    author = serializers.SlugRelatedField(slug_field='email', queryset=Author.objects.all())
+    category = serializers.SlugRelatedField(slug_field='name', queryset=Category.objects.all())
 
     class Meta:
         model = Book
@@ -34,11 +85,57 @@ class BookSerializer(serializers.ModelSerializer):
             "image",
         ]
 
+    def validate_title(self, value):
+        # Validate that the title is not empty and has a minimum length of 3 characters
+        if not value or len(value) < 3:
+            raise serializers.ValidationError("The title must be at least 3 characters long.")
+
+        if not re.search(r'[A-Za-z]', value):
+            raise serializers.ValidationError("The title must contain at least one alphabetic character.")
+
+        return value
+
+    def create(self, validated_data):
+        # Check if a category with the same name already exists
+        if Book.objects.filter(title=validated_data['title']).exists():
+            raise serializers.ValidationError({"title": "A Book already exists."})
+
+        # If the category does not exist, create a new one
+        return super().create(validated_data)
+
 
 class CourseSerializer(serializers.ModelSerializer):
     class Meta:
         model = Course
         fields = ["id", "name", "description", "year"]
+
+    def validate(self, data):
+        name = data.get('name')
+        description = data.get('description')
+
+        # Allow alphabetic characters and spaces using regex
+        name_pattern = r'^[a-zA-Z\s]+$'
+        if name and not re.match(name_pattern, name):
+            raise serializers.ValidationError({"name": "The name field must only contain alphabetic characters and spaces."})
+
+        description_pattern = r'^[a-zA-Z0-9\s.,!?]+$'
+        if description and len(description) < 10:
+            raise serializers.ValidationError({"description": "The description must be at least 10 characters long."})
+        if description and not re.match(description_pattern, description):
+            raise serializers.ValidationError({"description": "The description can only contain letters, numbers, spaces, and specific punctuation."})
+
+        return data
+
+    def create(self, validated_data):
+        name = validated_data['name']
+        year = validated_data['year']
+
+        # Check if a course with the same name and year exists
+        if Course.objects.filter(name=name, year=year).exists():
+            raise serializers.ValidationError({"name": "A course with this name and year already exists."})
+
+        # If the course does not exist or the year is different, create a new one
+        return super().create(validated_data)
 
 
 class StudentSerializer(serializers.ModelSerializer):
@@ -78,6 +175,12 @@ class StudentRegistrationSerializer(serializers.ModelSerializer):
             "enrollment_number",
             "phone_number",
         ]
+
+    def validate_phone_number(self, value):
+        # Validate that phone number is not empty and 10 digits
+        if not value or not re.match(r'^\d{10}$', value):
+            raise serializers.ValidationError("The phone number must be exactly 10 digits.")
+        return value
 
     def create(self, validated_data):
         student = Student.objects.create(
