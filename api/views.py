@@ -31,6 +31,7 @@ from django.shortcuts import get_object_or_404
 from django.contrib.auth import logout
 from rest_framework_simplejwt.tokens import AccessToken, RefreshToken
 
+
 class AuthorView(generics.GenericAPIView):
     queryset = Author.objects.all()
     serializer_class = AuthorSerializer
@@ -38,10 +39,10 @@ class AuthorView(generics.GenericAPIView):
     filterset_class = AuthorFilter
 
     def get_objects(self):
-        return get_object_or_404(self.get_queryset(), pk=self.kwargs.get('pk'))
+        return get_object_or_404(self.get_queryset(), pk=self.kwargs.get("pk"))
 
     def get(self, request, *args, **kwargs):
-        if 'pk' in kwargs:
+        if "pk" in kwargs:
             # Retrieve a single author
             author = self.get_object()
             serializer = self.get_serializer(author)
@@ -58,10 +59,13 @@ class AuthorView(generics.GenericAPIView):
         serializer.is_valid(raise_exception=True)
         self.perform_create(serializer)
 
-        return Response({
-            'message': 'Author created successfully!',
-            'author': serializer.data
-        }, status=status.HTTP_201_CREATED)
+        return Response(
+            {
+                "message": "Author created successfully!",
+                "author": serializer.data,
+            },
+            status=status.HTTP_201_CREATED,
+        )
 
     def perform_create(self, serializer):
         serializer.save()
@@ -74,10 +78,13 @@ class AuthorView(generics.GenericAPIView):
         self.perform_update(serializer)
 
         # Return response with success message and updated author data
-        return Response({
-            'message': 'Author updated successfully!',
-            'author': serializer.data
-        }, status=status.HTTP_200_OK)
+        return Response(
+            {
+                "message": "Author updated successfully!",
+                "author": serializer.data,
+            },
+            status=status.HTTP_200_OK,
+        )
 
     def perform_update(self, serializer):
         serializer.save()
@@ -85,14 +92,19 @@ class AuthorView(generics.GenericAPIView):
     @custom_permission
     def patch(self, request, *args, **kwargs):
         author = self.get_object()
-        serializer = self.get_serializer(author, data=request.data, partial=True)
+        serializer = self.get_serializer(
+            author, data=request.data, partial=True
+        )
         serializer.is_valid(raise_exception=True)
         self.perform_update(serializer)
 
-        return Response({
-            'message': 'Author partially updated successfully!',
-            'author': serializer.data
-        }, status=status.HTTP_200_OK)
+        return Response(
+            {
+                "message": "Author partially updated successfully!",
+                "author": serializer.data,
+            },
+            status=status.HTTP_200_OK,
+        )
 
     @custom_permission
     def delete(self, request, *args, **kwargs):
@@ -100,9 +112,10 @@ class AuthorView(generics.GenericAPIView):
         self.perform_destroy(author)  # Perform the deletion
 
         # Return response with success message
-        return Response({
-            'message': 'Author deleted successfully!'
-        }, status=status.HTTP_204_NO_CONTENT)
+        return Response(
+            {"message": "Author deleted successfully!"},
+            status=status.HTTP_204_NO_CONTENT,
+        )
 
     def perform_destroy(self, instance):
         instance.delete()
@@ -116,10 +129,10 @@ class CategoryView(generics.GenericAPIView):
     filter_class = CategoryFilter
 
     def get_objects(self):
-        return get_object_or_404(self.get_queryset(), pk=self.kwargs.get('pk'))
+        return get_object_or_404(self.get_queryset(), pk=self.kwargs.get("pk"))
 
     def get(self, request, *args, **kwargs):
-        if 'pk' in kwargs:
+        if "pk" in kwargs:
             # Retrieve a single category
             category = self.get_object()
             serializer = self.get_serializer(category)
@@ -136,10 +149,13 @@ class CategoryView(generics.GenericAPIView):
         serializer.is_valid(raise_exception=True)
         self.perform_create(serializer)
 
-        return Response({
-            'message': 'Category created successfully!',
-            'category': serializer.data
-        }, status=status.HTTP_201_CREATED)
+        return Response(
+            {
+                "message": "Category created successfully!",
+                "category": serializer.data,
+            },
+            status=status.HTTP_201_CREATED,
+        )
 
     def perform_create(self, serializer):
         serializer.save()
@@ -151,10 +167,13 @@ class CategoryView(generics.GenericAPIView):
         serializer.is_valid(raise_exception=True)
         self.perform_update(serializer)
 
-        return Response({
-            'message': 'Category updated successfully!',
-            'category': serializer.data
-        }, status=status.HTTP_200_OK)
+        return Response(
+            {
+                "message": "Category updated successfully!",
+                "category": serializer.data,
+            },
+            status=status.HTTP_200_OK,
+        )
 
     def perform_update(self, serializer):
         serializer.save()
@@ -162,23 +181,29 @@ class CategoryView(generics.GenericAPIView):
     @custom_permission
     def patch(self, request, *args, **kwargs):
         category = self.get_object()
-        serializer = self.get_serializer(category, data=request.data, partial=True)
+        serializer = self.get_serializer(
+            category, data=request.data, partial=True
+        )
         serializer.is_valid(raise_exception=True)
         self.perform_update(serializer)
 
-        return Response({
-            'message': 'Category partially updated successfully!',
-            'category': serializer.data
-        }, status=status.HTTP_200_OK)
+        return Response(
+            {
+                "message": "Category partially updated successfully!",
+                "category": serializer.data,
+            },
+            status=status.HTTP_200_OK,
+        )
 
     @custom_permission
     def delete(self, request, *args, **kwargs):
         category = self.get_object()
         self.perform_destroy(category)
 
-        return Response({
-            'message': 'Category deleted successfully!'
-        }, status=status.HTTP_204_NO_CONTENT)
+        return Response(
+            {"message": "Category deleted successfully!"},
+            status=status.HTTP_204_NO_CONTENT,
+        )
 
     def perform_destroy(self, instance):
         instance.delete()
@@ -193,10 +218,10 @@ class BookView(generics.GenericAPIView):
     ordering_fields = ["title", "publication_date", "quantity"]
 
     def get_object(self):
-        return get_object_or_404(self.get_queryset(), pk=self.kwargs.get('pk'))
+        return get_object_or_404(self.get_queryset(), pk=self.kwargs.get("pk"))
 
     def get(self, request, *args, **kwargs):
-        if 'pk' in kwargs:
+        if "pk" in kwargs:
             # Retrive a  Single Book.
             book = self.get_object()
             serializer = self.get_serializer(book)
@@ -213,10 +238,10 @@ class BookView(generics.GenericAPIView):
         serializer.is_valid(raise_exception=True)
         self.perform_create(serializer)
 
-        return Response({
-            'message': 'Book Created Successfully!',
-            'book': serializer.data
-        }, status=status.HTTP_201_CREATED)
+        return Response(
+            {"message": "Book Created Successfully!", "book": serializer.data},
+            status=status.HTTP_201_CREATED,
+        )
 
     def perform_create(self, serializer):
         serializer.save()
@@ -228,10 +253,10 @@ class BookView(generics.GenericAPIView):
         serializer.is_valid(raise_exception=True)
         self.perform_update(serializer)
 
-        return Response({
-            'message': 'Book Updated Successfully!',
-            'book': serializer.data
-        }, status=status.HTTP_200_OK)
+        return Response(
+            {"message": "Book Updated Successfully!", "book": serializer.data},
+            status=status.HTTP_200_OK,
+        )
 
     def perform_update(self, serializer):
         serializer.save()
@@ -243,19 +268,23 @@ class BookView(generics.GenericAPIView):
         serializer.is_valid(raise_exception=True)
         self.perform_update(serializer)
 
-        return Response({
-            'message': 'Book Partially update Successfully!',
-            'book': serializer.data
-        }, status=status.HTTP_200_OK)
+        return Response(
+            {
+                "message": "Book Partially update Successfully!",
+                "book": serializer.data,
+            },
+            status=status.HTTP_200_OK,
+        )
 
     @custom_permission
     def delete(self, request, *args, **kwargs):
         book = self.get_object()
         self.perform_destroy(book)
 
-        return Response({
-            'message': 'Book deleted Successfully!'
-        }, status=status.HTTP_204_NO_CONTENT)
+        return Response(
+            {"message": "Book deleted Successfully!"},
+            status=status.HTTP_204_NO_CONTENT,
+        )
 
     def perform_destroy(self, instance):
         instance.delete()
@@ -267,10 +296,10 @@ class CourseView(generics.GenericAPIView):
     pagination_class = CoursePagination
 
     def get_object(self):
-        return get_object_or_404(self.get_queryset(), pk=self.kwarg.get('pk'))
+        return get_object_or_404(self.get_queryset(), pk=self.kwarg.get("pk"))
 
     def get(self, request, *args, **kwargs):
-        if 'pk' in kwargs:
+        if "pk" in kwargs:
             # Retrive a Single Course
             course = self.get_object()
             serializer = self.get_serializer(course)
@@ -287,10 +316,13 @@ class CourseView(generics.GenericAPIView):
         serializer.is_valid(raise_exception=True)
         self.perform_create(serializer)
 
-        return Response({
-            'message': 'Course Created Successfully!',
-            'course': serializer.data
-        }, status=status.HTTP_201_CREATED)
+        return Response(
+            {
+                "message": "Course Created Successfully!",
+                "course": serializer.data,
+            },
+            status=status.HTTP_201_CREATED,
+        )
 
     def perform_create(self, serializer):
         serializer.save()
@@ -308,10 +340,13 @@ class CourseView(generics.GenericAPIView):
         self.perform_update(serializer)
 
         # Return a success message along with the updated course data
-        return Response({
-            'message': 'Course Updated Successfully!',
-            'course': serializer.data
-        }, status=status.HTTP_200_OK)
+        return Response(
+            {
+                "message": "Course Updated Successfully!",
+                "course": serializer.data,
+            },
+            status=status.HTTP_200_OK,
+        )
 
     def perform_update(self, serializer):
         # Save the updates to the course
@@ -320,28 +355,34 @@ class CourseView(generics.GenericAPIView):
     # Add a get_object method to retrieve the course instance by its pk (UUID)
     def get_object(self):
         # Use get_object_or_404 to get the course based on the UUID pk
-        return get_object_or_404(Course, pk=self.kwargs['pk'])
+        return get_object_or_404(Course, pk=self.kwargs["pk"])
 
     @custom_permission
     def patch(self, request, *args, **kwargs):
         course = self.get_object()
-        serializer = self.get_serializer(course, data=request.data, partial=True)
+        serializer = self.get_serializer(
+            course, data=request.data, partial=True
+        )
         serializer.is_valid(raise_exception=True)
         self.perform_update(serializer)
 
-        return Response({
-            'message': 'Course Updated Partially Successfully!',
-            'course': serializer.data
-        }, status=status.HTTP_200_OK)
+        return Response(
+            {
+                "message": "Course Updated Partially Successfully!",
+                "course": serializer.data,
+            },
+            status=status.HTTP_200_OK,
+        )
 
     @custom_permission
     def delete(self, request, *args, **kwargs):
         course = self.get_object()
         self.perform_destroy(course)
 
-        return Response({
-            'message': 'Course deleted Successfully!'
-        }, status=status.HTTP_204_NO_CONTENT)
+        return Response(
+            {"message": "Course deleted Successfully!"},
+            status=status.HTTP_204_NO_CONTENT,
+        )
 
     def perform_destroy(self, instance):
         instance.delete()
@@ -357,10 +398,13 @@ class StudentRegistrationAPIView(generics.GenericAPIView):
         serializer.is_valid(raise_exception=True)
         student = serializer.save()
 
-        return Response({
-            'message': 'Student registered successfully!',
-            'student': self.get_serializer(student).data
-        }, status=status.HTTP_201_CREATED)
+        return Response(
+            {
+                "message": "Student registered successfully!",
+                "student": self.get_serializer(student).data,
+            },
+            status=status.HTTP_201_CREATED,
+        )
 
 
 # Login view
@@ -370,14 +414,17 @@ class StudentLoginLogoutAPIView(generics.GenericAPIView):
     permission_classes = [permissions.AllowAny]
 
     def post(self, request, *args, **kwargs):
-        action = self.kwargs.get('action')
+        action = self.kwargs.get("action")
 
-        if action == 'login':
+        if action == "login":
             return self.handle_login(request)
-        elif action == 'logout':
+        elif action == "logout":
             return self.handle_logout(request)
         else:
-            return Response({"detail": "Invalid action."}, status=status.HTTP_400_BAD_REQUEST)
+            return Response(
+                {"detail": "Invalid action."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
 
     def handle_login(self, request):
         serializer = self.get_serializer(data=request.data)
@@ -402,9 +449,14 @@ class StudentLoginLogoutAPIView(generics.GenericAPIView):
             refresh_token = request.data["refresh"]
             token = RefreshToken(refresh_token)
             token.blacklist()  # Blacklist the access token
-            return Response({"detail": "Logout successful"}, status=status.HTTP_205_RESET_CONTENT)
+            return Response(
+                {"detail": "Logout successful"},
+                status=status.HTTP_205_RESET_CONTENT,
+            )
         except Exception as e:
-            return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+            return Response(
+                {"error": str(e)}, status=status.HTTP_400_BAD_REQUEST
+            )
 
 
 class StudentAPIView(generics.GenericAPIView):
@@ -414,13 +466,16 @@ class StudentAPIView(generics.GenericAPIView):
     permission_classes = [permissions.IsAuthenticated]
 
     def get(self, request, *args, **kwargs):
-        if 'pk' in kwargs:
+        if "pk" in kwargs:
             student = self.get_object()
             serializer = self.get_serializer(student)
-            return Response({
-                "message": "Student retrieved successfully!",
-                "data": serializer.data,
-            }, status=status.HTTP_200_OK)
+            return Response(
+                {
+                    "message": "Student retrieved successfully!",
+                    "data": serializer.data,
+                },
+                status=status.HTTP_200_OK,
+            )
         else:
             # List All Students
             students = self.filter_queryset(self.get_queryset())
@@ -431,10 +486,13 @@ class StudentAPIView(generics.GenericAPIView):
                 return self.get_paginated_response(serializer.data)
 
             serializer = self.get_serializer(students, many=True)
-            return Response({
-                "message": "Students retrieved successfully!",
-                "data": serializer.data,
-            }, status=status.HTTP_200_OK)
+            return Response(
+                {
+                    "message": "Students retrieved successfully!",
+                    "data": serializer.data,
+                },
+                status=status.HTTP_200_OK,
+            )
 
     def put(self, request, *args, **kwargs):
         student = self.get_object()
@@ -442,24 +500,32 @@ class StudentAPIView(generics.GenericAPIView):
         serializer.is_valid(raise_exception=True)
         self.perform_update(serializer)
 
-        return Response({
-            'message': 'Student Updated Successfully!',
-            'data': serializer.data
-        }, status=status.HTTP_200_OK)
+        return Response(
+            {
+                "message": "Student Updated Successfully!",
+                "data": serializer.data,
+            },
+            status=status.HTTP_200_OK,
+        )
 
     def perform_update(self, serializer):
         serializer.save()
 
     def patch(self, request, *args, **kwargs):
         student = self.get_object()
-        serializer = self.get_serializer(student, data=request.data, partial=True)
+        serializer = self.get_serializer(
+            student, data=request.data, partial=True
+        )
         serializer.is_valid(raise_exception=True)
         self.perform_update(serializer)
 
-        return Response({
-            'message': 'Student Partially Updated Successfully!',
-            'data': serializer.data
-        }, status=status.HTTP_200_OK)
+        return Response(
+            {
+                "message": "Student Partially Updated Successfully!",
+                "data": serializer.data,
+            },
+            status=status.HTTP_200_OK,
+        )
 
     def delete(self, request, *args, **kwargs):
         student = self.get_object()
@@ -468,10 +534,17 @@ class StudentAPIView(generics.GenericAPIView):
         if student.id == request.user.id:
             # Perform the deletion
             student.delete()
-            return Response({"message": "Student deleted successfully."}, status=status.HTTP_200_OK)
+            return Response(
+                {"message": "Student deleted successfully."},
+                status=status.HTTP_200_OK,
+            )
         else:
-            return Response({"detail": "You do not have permission to delete this student."},
-                            status=status.HTTP_403_FORBIDDEN)
+            return Response(
+                {
+                    "detail": "You do not have permission to delete this student."
+                },
+                status=status.HTTP_403_FORBIDDEN,
+            )
 
 
 class IssuedBookView(generics.GenericAPIView):
@@ -486,26 +559,34 @@ class IssuedBookView(generics.GenericAPIView):
         serializer.is_valid(raise_exception=True)
         self.perform_create(serializer)
 
-        return Response({
-            'message': 'Book Issued Successfully!',
-            'course': serializer.data
-        }, status=status.HTTP_201_CREATED)
+        return Response(
+            {
+                "message": "Book Issued Successfully!",
+                "course": serializer.data,
+            },
+            status=status.HTTP_201_CREATED,
+        )
 
     def perform_create(self, serializer):
         serializer.save()
 
     def get(self, request, *args, **kwargs):
-        issued_books = self.filter_queryset(self.get_queryset().filter(is_returned=False))
+        issued_books = self.filter_queryset(
+            self.get_queryset().filter(is_returned=False)
+        )
         page = self.paginate_queryset(issued_books)
         if page is not None:
             serializer = self.get_serializer(page, many=True)
             return self.get_paginated_response(serializer.data)
 
         serializer = self.get_serializer(issued_books, many=True)
-        return Response({
-            "message": "Issued books retrieved successfully!",
-            "data": serializer.data,
-        }, status=status.HTTP_200_OK)
+        return Response(
+            {
+                "message": "Issued books retrieved successfully!",
+                "data": serializer.data,
+            },
+            status=status.HTTP_200_OK,
+        )
 
 
 class ReturnBookView(generics.GenericAPIView):
@@ -522,6 +603,9 @@ class ReturnBookView(generics.GenericAPIView):
         issued_book = serializer.save(student=request.user)
 
         return Response(
-            {"message": "Book returned successfully!", "issued_book_id": issued_book.id},
-            status=status.HTTP_200_OK
+            {
+                "message": "Book returned successfully!",
+                "issued_book_id": issued_book.id,
+            },
+            status=status.HTTP_200_OK,
         )
