@@ -10,17 +10,6 @@ class AuthorSerializer(serializers.ModelSerializer):
         model = Author
         fields = ["id", "name", "email", "birth_date", "nationality"]
 
-    # def validate(self, data):
-    #     name = data.get('name')
-    #     nationality = data.get('nationality')
-
-    #     if name and not name.isalpha():
-    #         raise serializers.ValidationError({"name": "The name field must only contain alphabetic characters."})
-
-    #     if nationality and not nationality.isalpha():
-    #         raise serializers.ValidationError({"nationality": "The nationality field must only contain alphabetic characters."})
-
-    #     return data
     def validate(self, data):
         name = data.get('name')
         nationality = data.get('nationality')
