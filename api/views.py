@@ -1,6 +1,5 @@
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import filters
-from django.utils.timezone import now
 from rest_framework import status
 from rest_framework import generics, permissions
 from rest_framework.response import Response
@@ -24,12 +23,9 @@ from .pagination import (
     IssuedBookPagination,
 )
 from .filters import BookFilter, AuthorFilter, CategoryFilter, IssuedBookFilter
-from rest_framework.permissions import IsAdminUser, AllowAny
-from datetime import datetime, timedelta
 from .decorators import custom_permission
 from django.shortcuts import get_object_or_404
-from django.contrib.auth import logout
-from rest_framework_simplejwt.tokens import AccessToken, RefreshToken
+from rest_framework_simplejwt.tokens import RefreshToken
 
 
 class AuthorView(generics.GenericAPIView):
@@ -92,9 +88,7 @@ class AuthorView(generics.GenericAPIView):
     @custom_permission
     def patch(self, request, *args, **kwargs):
         author = self.get_object()
-        serializer = self.get_serializer(
-            author, data=request.data, partial=True
-        )
+        serializer = self.get_serializer(author, data=request.data, partial=True)
         serializer.is_valid(raise_exception=True)
         self.perform_update(serializer)
 
@@ -181,9 +175,7 @@ class CategoryView(generics.GenericAPIView):
     @custom_permission
     def patch(self, request, *args, **kwargs):
         category = self.get_object()
-        serializer = self.get_serializer(
-            category, data=request.data, partial=True
-        )
+        serializer = self.get_serializer(category, data=request.data, partial=True)
         serializer.is_valid(raise_exception=True)
         self.perform_update(serializer)
 
@@ -295,8 +287,8 @@ class CourseView(generics.GenericAPIView):
     serializer_class = CourseSerializer
     pagination_class = CoursePagination
 
-    def get_object(self):
-        return get_object_or_404(self.get_queryset(), pk=self.kwarg.get("pk"))
+    # def get_object(self):
+    #     return get_object_or_404(self.get_queryset(), pk=self.kwarg.get("pk"))
 
     def get(self, request, *args, **kwargs):
         if "pk" in kwargs:
@@ -360,9 +352,7 @@ class CourseView(generics.GenericAPIView):
     @custom_permission
     def patch(self, request, *args, **kwargs):
         course = self.get_object()
-        serializer = self.get_serializer(
-            course, data=request.data, partial=True
-        )
+        serializer = self.get_serializer(course, data=request.data, partial=True)
         serializer.is_valid(raise_exception=True)
         self.perform_update(serializer)
 
@@ -454,9 +444,7 @@ class StudentLoginLogoutAPIView(generics.GenericAPIView):
                 status=status.HTTP_205_RESET_CONTENT,
             )
         except Exception as e:
-            return Response(
-                {"error": str(e)}, status=status.HTTP_400_BAD_REQUEST
-            )
+            return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
 
 class StudentAPIView(generics.GenericAPIView):
@@ -513,9 +501,7 @@ class StudentAPIView(generics.GenericAPIView):
 
     def patch(self, request, *args, **kwargs):
         student = self.get_object()
-        serializer = self.get_serializer(
-            student, data=request.data, partial=True
-        )
+        serializer = self.get_serializer(student, data=request.data, partial=True)
         serializer.is_valid(raise_exception=True)
         self.perform_update(serializer)
 
@@ -540,9 +526,7 @@ class StudentAPIView(generics.GenericAPIView):
             )
         else:
             return Response(
-                {
-                    "detail": "You do not have permission to delete this student."
-                },
+                {"detail": "You do not have permission to delete this student."},
                 status=status.HTTP_403_FORBIDDEN,
             )
 

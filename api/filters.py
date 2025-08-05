@@ -7,9 +7,7 @@ from django_filters import rest_framework as filters
 class AuthorFilter(filters.FilterSet):
     name = filters.CharFilter(field_name="name", lookup_expr="icontains")
     email = filters.CharFilter(field_name="name", lookup_expr="icontains")
-    nationality = filters.CharFilter(
-        field_name="nationality", lookup_expr="icontains"
-    )
+    nationality = filters.CharFilter(field_name="nationality", lookup_expr="icontains")
 
     class Meta:
         model = Author
@@ -19,9 +17,7 @@ class AuthorFilter(filters.FilterSet):
 # Filter for Category model
 class CategoryFilter(filters.FilterSet):
     name = filters.CharFilter(field_name="name", lookup_expr="icontains")
-    description = filters.CharFilter(
-        field_name="description", lookup_expr="icontains"
-    )
+    description = filters.CharFilter(field_name="description", lookup_expr="icontains")
 
     class Meta:
         model = Category
@@ -31,18 +27,12 @@ class CategoryFilter(filters.FilterSet):
 # Filter for Book model
 class BookFilter(filters.FilterSet):
     title = filters.CharFilter(field_name="title", lookup_expr="icontains")
-    author = filters.CharFilter(
-        field_name="author__name", lookup_expr="icontains"
-    )
-    category = filters.CharFilter(
-        field_name="category__name", lookup_expr="icontains"
-    )
+    author = filters.CharFilter(field_name="author__name", lookup_expr="icontains")
+    category = filters.CharFilter(field_name="category__name", lookup_expr="icontains")
     publication_date = filters.DateFilter(
         field_name="publication_date", lookup_expr="exact"
     )
-    min_quantity = filters.NumberFilter(
-        field_name="quantity", lookup_expr="gte"
-    )
+    min_quantity = filters.NumberFilter(field_name="quantity", lookup_expr="gte")
 
     class Meta:
         model = Book
@@ -63,9 +53,7 @@ class IssuedBookFilter(django_filters.FilterSet):
     student = django_filters.CharFilter(
         field_name="student__name", lookup_expr="icontains"
     )
-    book = django_filters.CharFilter(
-        field_name="book__title", lookup_expr="icontains"
-    )
+    book = django_filters.CharFilter(field_name="book__title", lookup_expr="icontains")
 
     class Meta:
         model = IssuedBook

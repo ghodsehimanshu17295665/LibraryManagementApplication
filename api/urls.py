@@ -45,12 +45,8 @@ urlpatterns = [
         StudentAPIView.as_view(),
         name="student-detail",
     ),
-    path(
-        "api/token/", TokenObtainPairView.as_view(), name="token_obtain_pair"
-    ),
-    path(
-        "api/token/refresh/", TokenRefreshView.as_view(), name="token_refresh"
-    ),
+    path("api/token/", TokenObtainPairView.as_view(), name="token_obtain_pair"),
+    path("api/token/refresh/", TokenRefreshView.as_view(), name="token_refresh"),
     path("issue-book/", IssuedBookView.as_view(), name="issue-book"),
     path("return-book/", ReturnBookView.as_view(), name="return-book"),
 ]

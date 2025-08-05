@@ -5,6 +5,7 @@ from rest_framework.test import APITestCase
 from django.urls import reverse
 from rest_framework_simplejwt.tokens import RefreshToken
 from .factories import AuthorFactory, CategoryFactory, BookFactory
+
 # from .models import Author, Category, Book
 
 
@@ -22,9 +23,7 @@ class AuthorViewTests(APITestCase):
         )
 
         # Ensure the superuser is created
-        self.assertTrue(
-            self.superuser.is_superuser, "Superuser creation failed"
-        )
+        self.assertTrue(self.superuser.is_superuser, "Superuser creation failed")
         self.assertTrue(self.superuser.is_staff, "Superuser should be staff")
 
         # Generate JWT token for the superuser
@@ -35,9 +34,7 @@ class AuthorViewTests(APITestCase):
 
         # Create a sample author using Factory Boy
         self.author = AuthorFactory.create()  # Create a random author
-        self.url_list = reverse(
-            "author-list-create"
-        )  # URL for creating authors
+        self.url_list = reverse("author-list-create")  # URL for creating authors
         self.url_detail = reverse(
             "author-detail", kwargs={"pk": self.author.id}
         )  # URL for author details
@@ -49,9 +46,7 @@ class AuthorViewTests(APITestCase):
             self.url_list, HTTP_AUTHORIZATION=f"Bearer {self.token}"
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(
-            len(response.data), 1
-        )  # Only one author should be in the DB
+        self.assertEqual(len(response.data), 1)  # Only one author should be in the DB
 
     def test_get_author_detail(self):
         """Test the GET method for retrieving a single author."""
@@ -84,9 +79,7 @@ class AuthorViewTests(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
         # Check the response content
-        self.assertEqual(
-            response.data["message"], "Author created successfully!"
-        )
+        self.assertEqual(response.data["message"], "Author created successfully!")
         self.assertEqual(response.data["author"]["name"], data["name"])
 
     def test_put_update_author(self):
@@ -111,9 +104,7 @@ class AuthorViewTests(APITestCase):
 
         # Check the response content to ensure the author was updated
         self.assertEqual(response.data["author"]["name"], updated_data["name"])
-        self.assertEqual(
-            response.data["author"]["email"], updated_data["email"]
-        )
+        self.assertEqual(response.data["author"]["email"], updated_data["email"])
 
     def test_patch_update_author(self):
         """Test the PATCH method to partial update an existing author."""
@@ -181,9 +172,7 @@ class AuthorViewTests(APITestCase):
         non_existent_pk = uuid.uuid4()
 
         # URL for a non-existent author
-        non_existent_url = reverse(
-            "author-detail", kwargs={"pk": non_existent_pk}
-        )
+        non_existent_url = reverse("author-detail", kwargs={"pk": non_existent_pk})
 
         # Send GET request for a non-existent author
         response = self.client.get(
@@ -208,9 +197,7 @@ class CategoryViewTests(APITestCase):
 
         self.category = CategoryFactory.create()
         self.url_list = reverse("categories-list-create")
-        self.url_detail = reverse(
-            "categories-detail", kwargs={"pk": self.category.id}
-        )
+        self.url_detail = reverse("categories-detail", kwargs={"pk": self.category.id})
 
     def test_get_category_list(self):
         response = self.client.get(
@@ -246,9 +233,7 @@ class CategoryViewTests(APITestCase):
             HTTP_AUTHORIZATION=f"Bearer {self.token}",
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(
-            response.data["category"]["name"], updated_data["name"]
-        )
+        self.assertEqual(response.data["category"]["name"], updated_data["name"])
 
     def test_patch_update_category(self):
         updated_data = {"name": "Mechanical"}
@@ -259,9 +244,7 @@ class CategoryViewTests(APITestCase):
             HTTP_AUTHORIZATION=f"Bearer {self.token}",
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(
-            response.data["category"]["name"], updated_data["name"]
-        )
+        self.assertEqual(response.data["category"]["name"], updated_data["name"])
 
     def test_delete_category(self):
         response = self.client.delete(

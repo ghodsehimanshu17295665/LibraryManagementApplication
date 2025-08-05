@@ -115,7 +115,6 @@ class IssuedBookAdmin(admin.ModelAdmin):
     )
 
 
-
 @admin.register(Fine)
 class FineAdmin(admin.ModelAdmin):
     list_display = ("id", "issued_book", "amount", "date")

@@ -11,8 +11,8 @@ def custom_permission(func):
             # Allow only superusers to perform write actions
             if not request.user.is_superuser:
                 return Response(
-                    {'detail': 'Only superusers can perform this action.'},
-                    status=status.HTTP_403_FORBIDDEN
+                    {"detail": "Only superusers can perform this action."},
+                    status=status.HTTP_403_FORBIDDEN,
                 )
 
         # Check permissions for GET requests
@@ -20,8 +20,8 @@ def custom_permission(func):
             # Allow only authenticated users to view content
             if not request.user.is_authenticated:
                 return Response(
-                    {'detail': 'Authentication is required to view this content.'},
-                    status=status.HTTP_403_FORBIDDEN
+                    {"detail": "Authentication is required to view this content."},
+                    status=status.HTTP_403_FORBIDDEN,
                 )
 
         return func(self, request, *args, **kwargs)
