@@ -3,7 +3,7 @@ name: Run Django Tests and Lint
 on:
   push:
     branches:
-      - developer
+      - main
   pull_request:
     branches:
       - main
